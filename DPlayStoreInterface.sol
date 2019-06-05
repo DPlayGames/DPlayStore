@@ -4,9 +4,18 @@ interface DPlayStoreInterface {
 	
 	// 게임 정보
 	struct Game {
+		bool isPublished;
+	}
+	
+	// 게임 세부 정보 (언어별로 필요합니다.)
+	struct GameDetails {
+		string language;
+		
 		string title;
 		string summary;
+		string downloadURL;
 		uint price;
+		
 		string description;
 		string titleImageURL;
 		string bannerImageURL;
@@ -19,11 +28,19 @@ interface DPlayStoreInterface {
 		string keyword5;
 	}
 	
-	// 게임을 출시합니다.
-	function publish(
+	// 새 게임을 생성합니다.
+	function create() external returns (uint gameId);
+	
+	// 게임 세부 정보를 입력합니다.
+	function setDetails(
+		uint gameId,
+		string calldata language,
+		
 		string calldata title,
 		string calldata summary,
+		string calldata downloadURL,
 		uint price,
+		
 		string calldata description,
 		string calldata titleImageURL,
 		string calldata bannerImageURL,
@@ -32,13 +49,17 @@ interface DPlayStoreInterface {
 		string calldata keyword2,
 		string calldata keyword3,
 		string calldata keyword4,
-		string calldata keyword5) external returns (uint gameId);
+		string calldata keyword5) external;
 	
 	// 게임 정보를 반환합니다.
-	function getGameInfo(uint gameId) external view returns (
+	function getGameInfo(uint gameId, string calldata language) external view returns (
+		bool isPublished,
+		
 		string memory title,
 		string memory summary,
+		string memory downloadURL,
 		uint price,
+		
 		string memory description,
 		string memory titleImageURL,
 		string memory bannerImageURL,
@@ -49,6 +70,9 @@ interface DPlayStoreInterface {
 		string memory keyword4,
 		string memory keyword5
 	);
+	
+	// 게임을 출시합니다.
+	function publish(uint gameId) external;
 	
 	// 게임을 구매합니다.
 	function buy(uint gameId) external payable;
