@@ -13,8 +13,12 @@ interface DPlayStoreInterface {
 	struct Game {
 		
 		address publisher;
+		
 		uint price;
 		string defaultLanguage;
+		bool isWebGame;
+		string gameURL;
+		
 		bool isPublished;
 		
 		uint createTime;
@@ -48,16 +52,16 @@ interface DPlayStoreInterface {
 	}
 	
 	// 새 게임을 생성합니다.
-	function create(uint price, string calldata defaultLanguage) external returns (uint gameId);
+	function create(uint price, string calldata defaultLanguage, bool isWebGame, string calldata gameURL) external returns (uint gameId);
 	
 	// 게임의 가격을 변경합니다.
 	function changePrice(uint gameId, uint price) external;
 	
-	// 게임의 기본 언어를 변경합니다.
-	function changeDefaultLanguage(uint gameId, string calldata defaultLanguage) external;
+	// 게임의 정보를 변경합니다.
+	function changeGameInfo(uint gameId, string calldata defaultLanguage, bool isWebGame, string calldata gameURL) external;
 	
-	// 언어별로 게임 세부 정보를 입력합니다.
-	function setDetails(
+	// 언어별로 게임 세부 정보를 추가합니다.
+	function addDetails(
 		uint gameId,
 		string calldata language,
 		
@@ -128,18 +132,15 @@ interface DPlayStoreInterface {
 	// 종합 평가 점수 = (모든 평가의 합: 평가자 A의 DC Power * 평가자 A의 평가 점수) / 모든 평가자의 DC Power
 	function getRating(uint gameId) external view returns (uint);
 	
-	// 키워드에 해당하는 게임의 숫자를 가져옵니다.
-	function getGameCountByKeyword(string calldata language, string calldata keyword) external view returns (uint);
-	
 	// 게임 ID들을 최신 순으로 가져옵니다.
-	function getGameIdsNewest(uint count) external view returns (uint[] memory);
+	function getGameIdsNewest() external view returns (uint[] memory);
 	
 	// 게임 ID들을 높은 점수 순으로 가져오되, 평가 수로 필터링합니다.
-	function getGameIdsByRating(uint ratingCount, uint count) external view returns (uint[] memory);
+	function getGameIdsByRating(uint ratingCount) external view returns (uint[] memory);
 	
 	// 키워드에 해당하는 게임 ID들을 최신 순으로 가져옵니다.
-	function getGameIdsByKeywordNewest(string calldata language, string calldata keyword, uint count) external view returns (uint[] memory);
+	function getGameIdsByKeywordNewest(string calldata language, string calldata keyword) external view returns (uint[] memory);
 	
 	// 키워드에 해당하는 게임 ID들을 높은 점수 순으로 가져오되, 평가 수로 필터링합니다.
-	function getGameIdsByKeywordAndRating(string calldata language, string calldata keyword, uint ratingCount, uint count) external view returns (uint[] memory);
+	function getGameIdsByKeywordAndRating(string calldata language, string calldata keyword, uint ratingCount) external view returns (uint[] memory);
 }

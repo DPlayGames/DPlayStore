@@ -37,18 +37,22 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 	}
 	
 	// 새 게임을 생성합니다.
-	function create(uint price, string calldata defaultLanguage) external returns (uint) {
+	function create(uint price, string calldata defaultLanguage, bool isWebGame, string calldata gameURL) external returns (uint) {
 		
-		// 게임의 가격은 최소 1DC 입니다.
-		require(price >= 10 ** uint(dplayCoin.decimals()));
+		// 게임의 가격 무료이거나 최소 1DC 입니다.
+		require(price == 0 || price >= 10 ** uint(dplayCoin.decimals()));
 		
 		uint createTime = now;
 		
 		uint gameId = games.push(Game({
 			
 			publisher : msg.sender,
+			
 			price : price,
 			defaultLanguage : defaultLanguage,
+			isWebGame : isWebGame,
+			gameURL : gameURL,
+			
 			isPublished : false,
 			
 			createTime : createTime,
@@ -65,6 +69,9 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 		
 		Game storage game = games[gameId];
 		
+		// 무료 게임은 가격을 변경할 수 없습니다.
+		require(game.price > 0);
+		
 		// 게임의 배포자인 경우에만
 		require(game.publisher == msg.sender);
 		
@@ -74,8 +81,8 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 		game.price = price;
 	}
 	
-	// 게임의 기본 언어를 변경합니다.
-	function changeDefaultLanguage(uint gameId, string calldata defaultLanguage) external {
+	// 게임의 정보를 변경합니다.
+	function changeGameInfo(uint gameId, string calldata defaultLanguage, bool isWebGame, string calldata gameURL) external {
 		
 		Game storage game = games[gameId];
 		
@@ -83,6 +90,8 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 		require(game.publisher == msg.sender);
 		
 		game.defaultLanguage = defaultLanguage;
+		game.isWebGame = isWebGame;
+		game.gameURL = gameURL;
 	}
 	
 	// 언어별로 게임 세부 정보를 입력합니다.
@@ -205,8 +214,11 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 		
 		Game memory game = games[gameId];
 		
-		// 생성된 게임 정보여야 합니다.
+		// 정상적인 게임 정보여야 합니다.
 		require(game.publisher != address(0x0));
+		
+		// 무료 게임은 구매할 수 없습니다.
+		require(game.price > 0);
 		
 		// 이미 구매한 경우에는 재구매할 수 없습니다.
 		require(checkIsBuyer(gameId) != true);
@@ -240,8 +252,11 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 		
 		Game memory game = games[gameId];
 		
-		// 생성된 게임 정보여야 합니다.
+		// 정상적인 게임 정보여야 합니다.
 		require(game.publisher != address(0x0));
+		
+		// 유료 게임은 구매자만 평가할 수 있습니다.
+		require(game.price == 0 || checkIsBuyer(gameId) == true);
 		
 		// 이미 평가한 경우에는 재평가할 수 없습니다.
 		require(checkIsRater(gameId) != true);
@@ -329,7 +344,7 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 		return totalPower == 0 ? 0 : totalRating.div(totalPower);
 	}
 	
-	function checkAreSameString(string memory str1, string memory str2) internal pure returns (bool) {
+	/*function checkAreSameString(string memory str1, string memory str2) internal pure returns (bool) {
 		return keccak256(abi.encodePacked(str1)) == keccak256(abi.encodePacked(str2));
 	}
 	
@@ -353,37 +368,38 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 			checkAreSameString(defaultLanguageGameDetails.keyword5, keyword) == true;
 	}
 	
-	// 키워드에 해당하는 게임의 숫자를 가져옵니다.
-	function getGameCountByKeyword(string calldata language, string calldata keyword) external view returns (uint) {
+	// 게임 ID들을 최신 순으로 가져옵니다.
+	function getGameIdsNewest() external view returns (uint[] memory) {
 		
 		uint gameCount = 0;
 		
 		for (uint i = 0; i < games.length; i += 1) {
-			if (checkKeyword(i, language, keyword) == true) {
+			
+			if (
+			// 정상적인 게임 정보인지
+			games[i].publisher != address(0x0) &&
+			
+			// 출시가 되었는지
+			games[i].isPublished == true) {
+				
 				gameCount += 1;
 			}
 		}
 		
-		return gameCount;
-	}
-	
-	// 게임 ID들을 최신 순으로 가져옵니다.
-	function getGameIdsNewest(uint count) external view returns (uint[] memory) {
-		
-		uint[] memory gameIds = new uint[](count);
-		uint j = count;
+		uint[] memory gameIds = new uint[](gameCount);
+		uint j = 0;
 		
 		for (uint i = games.length - 1; i >= 0; i -= 1) {
 			
+			if (
 			// 정상적인 게임 정보인지
-			if (games[i].publisher != address(0x0)) {
+			games[i].publisher != address(0x0) &&
+			
+			// 출시가 되었는지
+			games[i].isPublished == true) {
 				
-				j -= 1;
 				gameIds[j] = i;
-				
-				if (j == 0) {
-					break;
-				}
+				j += 1;
 			}
 		}
 		
@@ -391,19 +407,45 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 	}
 	
 	// 게임 ID들을 높은 점수 순으로 가져오되, 평가 수로 필터링합니다.
-	function getGameIdsByRating(uint ratingCount, uint count) external view returns (uint[] memory) {
+	function getGameIdsByRating(uint ratingCount) external view returns (uint[] memory) {
 		
-		uint[] memory gameIds = new uint[](count);
+		uint gameCount = 0;
 		
 		for (uint i = 0; i < games.length; i += 1) {
 			
+			if (
+			// 정상적인 게임 정보인지
+			games[i].publisher != address(0x0) &&
+			
+			// 출시가 되었는지
+			games[i].isPublished == true &&
+			
 			// 평가 수가 ratingCount 이상인 경우에만
-			if (gameIdToRatings[i].length >= ratingCount) {
+			gameIdToRatings[i].length >= ratingCount) {
+				
+				gameCount += 1;
+			}
+		}
+		
+		uint[] memory gameIds = new uint[](gameCount);
+		uint gameIdCount = 0;
+		
+		for (uint i = 0; i < games.length; i += 1) {
+			
+			if (
+			// 정상적인 게임 정보인지
+			games[i].publisher != address(0x0) &&
+			
+			// 출시가 되었는지
+			games[i].isPublished == true &&
+			
+			// 평가 수가 ratingCount 이상인 경우에만
+			gameIdToRatings[i].length >= ratingCount) {
 				
 				uint rating = getRating(i);
 				
-				uint j = count - 1;
-				for (; j >= 0; j -= 1) {
+				uint j = gameIdCount;
+				for (; j > 0; j -= 1) {
 					if (getRating(gameIds[j]) <= rating) {
 						gameIds[j] = gameIds[j - 1];
 					} else {
@@ -412,6 +454,7 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 				}
 				
 				gameIds[j] = i;
+				gameIdCount += 1;
 			}
 		}
 		
@@ -419,10 +462,28 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 	}
 	
 	// 키워드에 해당하는 게임 ID들을 최신 순으로 가져옵니다.
-	function getGameIdsByKeywordNewest(string calldata language, string calldata keyword, uint count) external view returns (uint[] memory) {
+	function getGameIdsByKeywordNewest(string calldata language, string calldata keyword) external view returns (uint[] memory) {
 		
-		uint[] memory gameIds = new uint[](count);
-		uint j = count;
+		uint gameCount = 0;
+		
+		for (uint i = 0; i < games.length; i += 1) {
+			
+			if (
+			// 정상적인 게임 정보인지
+			games[i].publisher != address(0x0) &&
+			
+			// 출시가 되었는지
+			games[i].isPublished == true &&
+			
+			// 키워드에 해당하는지
+			checkKeyword(i, language, keyword) == true) {
+				
+				gameCount += 1;
+			}
+		}
+		
+		uint[] memory gameIds = new uint[](gameCount);
+		uint j = 0;
 		
 		for (uint i = games.length - 1; i >= 0; i -= 1) {
 			
@@ -430,15 +491,14 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 			// 정상적인 게임 정보인지
 			games[i].publisher != address(0x0) &&
 			
+			// 출시가 되었는지
+			games[i].isPublished == true &&
+			
 			// 키워드에 해당하는지
 			checkKeyword(i, language, keyword) == true) {
 				
-				j -= 1;
 				gameIds[j] = i;
-				
-				if (j == 0) {
-					break;
-				}
+				j += 1;
 			}
 		}
 		
@@ -446,13 +506,41 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 	}
 	
 	// 키워드에 해당하는 게임 ID들을 높은 점수 순으로 가져오되, 평가 수로 필터링합니다.
-	function getGameIdsByKeywordAndRating(string calldata language, string calldata keyword, uint ratingCount, uint count) external view returns (uint[] memory) {
+	function getGameIdsByKeywordAndRating(string calldata language, string calldata keyword, uint ratingCount) external view returns (uint[] memory) {
 		
-		uint[] memory gameIds = new uint[](count);
+		uint gameCount = 0;
 		
 		for (uint i = 0; i < games.length; i += 1) {
 			
 			if (
+			// 정상적인 게임 정보인지
+			games[i].publisher != address(0x0) &&
+			
+			// 출시가 되었는지
+			games[i].isPublished == true &&
+			
+			// 평가 수가 ratingCount 이상인 경우에만
+			gameIdToRatings[i].length >= ratingCount &&
+			
+			// 키워드에 해당하는지
+			checkKeyword(i, language, keyword) == true) {
+				
+				gameCount += 1;
+			}
+		}
+		
+		uint[] memory gameIds = new uint[](gameCount);
+		uint gameIdCount = 0;
+		
+		for (uint i = 0; i < games.length; i += 1) {
+			
+			if (
+			// 정상적인 게임 정보인지
+			games[i].publisher != address(0x0) &&
+			
+			// 출시가 되었는지
+			games[i].isPublished == true &&
+			
 			// 평가 수가 ratingCount 이상인 경우에만
 			gameIdToRatings[i].length >= ratingCount &&
 			
@@ -461,8 +549,8 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 				
 				uint rating = getRating(i);
 				
-				uint j = count - 1;
-				for (; j >= 0; j -= 1) {
+				uint j = gameIdCount;
+				for (; j > 0; j -= 1) {
 					if (getRating(gameIds[j]) <= rating) {
 						gameIds[j] = gameIds[j - 1];
 					} else {
@@ -471,9 +559,10 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 				}
 				
 				gameIds[j] = i;
+				gameIdCount += 1;
 			}
 		}
 		
 		return gameIds;
-	}
+	}*/
 }
