@@ -1,4 +1,4 @@
-pragma solidity ^0.5.1;
+pragma solidity ^0.5.9;
 
 // This library is for preventing overflow problems while calculating numbers.
 // 숫자 계산 시 오버플로우 문제를 방지하기 위한 라이브러리

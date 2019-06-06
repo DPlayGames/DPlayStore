@@ -2,19 +2,30 @@ pragma solidity ^0.5.9;
 
 interface DPlayStoreInterface {
 	
+	// 이벤트들
+    event ChangePrice(uint indexed gameId, uint price);
+    event Publish(uint indexed gameId);
+    event Unpublish(uint indexed gameId);
+    event Buy(uint indexed gameId);
+    event Rate(uint indexed gameId, address rater, uint rating);
+	
 	// 게임 정보
 	struct Game {
+		
+		address owner;
+		uint price;
 		bool isPublished;
+		
+		uint createTime;
+		uint lastUpdateTime;
 	}
 	
 	// 게임 세부 정보 (언어별로 필요합니다.)
 	struct GameDetails {
-		string language;
 		
 		string title;
 		string summary;
 		string downloadURL;
-		uint price;
 		
 		string description;
 		string titleImageURL;
@@ -29,9 +40,12 @@ interface DPlayStoreInterface {
 	}
 	
 	// 새 게임을 생성합니다.
-	function create() external returns (uint gameId);
+	function create(uint price) external returns (uint gameId);
 	
-	// 게임 세부 정보를 입력합니다.
+	// 게임의 가격을 변경합니다.
+	function changePrice(uint gameId, uint price) external;
+	
+	// 언어별로 게임 세부 정보를 입력합니다.
 	function setDetails(
 		uint gameId,
 		string calldata language,
@@ -39,7 +53,6 @@ interface DPlayStoreInterface {
 		string calldata title,
 		string calldata summary,
 		string calldata downloadURL,
-		uint price,
 		
 		string calldata description,
 		string calldata titleImageURL,
@@ -53,12 +66,13 @@ interface DPlayStoreInterface {
 	
 	// 게임 정보를 반환합니다.
 	function getGameInfo(uint gameId, string calldata language) external view returns (
+		
+		uint price,
 		bool isPublished,
 		
 		string memory title,
 		string memory summary,
 		string memory downloadURL,
-		uint price,
 		
 		string memory description,
 		string memory titleImageURL,
@@ -73,6 +87,9 @@ interface DPlayStoreInterface {
 	
 	// 게임을 출시합니다.
 	function publish(uint gameId) external;
+	
+	// 게임 출시를 취소합니다.
+	function unpublish(uint gameId) external;
 	
 	// 게임을 구매합니다.
 	function buy(uint gameId) external payable;
