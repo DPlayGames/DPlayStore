@@ -10,7 +10,7 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 	
 	Game[] public games;
 	
-	mapping(address => uint[]) private ownerToGameIds;
+	mapping(address => uint[]) private publisherToGameIds;
 	mapping(uint => string[]) private gameIdToLanguages;
 	mapping(uint => mapping(string => GameDetails)) private gameIdToLanguageToDetails;
 	
@@ -40,7 +40,7 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 		
 		uint gameId = games.push(Game({
 			
-			owner : msg.sender,
+			publisher : msg.sender,
 			price : price,
 			isPublished : false,
 			
@@ -48,7 +48,7 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 			lastUpdateTime : createTime
 		})).sub(1);
 		
-		ownerToGameIds[msg.sender].push(gameId);
+		publisherToGameIds[msg.sender].push(gameId);
 		
 		return gameId;
 	}
@@ -74,8 +74,8 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 		
 		Game storage game = games[gameId];
 		
-		// 게임의 소유자인 경우에만
-		require(game.owner == msg.sender);
+		// 게임의 배포자인 경우에만
+		require(game.publisher == msg.sender);
 		
 		gameIdToLanguageToDetails[gameId][language] = GameDetails({
 			
@@ -100,6 +100,7 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 	// 게임 정보를 반환합니다.
 	function getGameInfo(uint gameId, string calldata language) external view returns (
 		
+		address publisher,
 		uint price,
 		bool isPublished,
 		
@@ -121,6 +122,7 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 		GameDetails memory gameDetails = gameIdToLanguageToDetails[gameId][language];
 		
 		return (
+			game.publisher,
 			game.price,
 			game.isPublished,
 			
@@ -145,8 +147,8 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 		
 		Game storage game = games[gameId];
 		
-		// 게임의 소유자인 경우에만
-		require(game.owner == msg.sender);
+		// 게임의 배포자인 경우에만
+		require(game.publisher == msg.sender);
 		
 		game.isPublished = true;
 		
@@ -158,20 +160,20 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 		
 		Game storage game = games[gameId];
 		
-		// 게임의 소유자인 경우에만
-		require(game.owner == msg.sender);
+		// 게임의 배포자인 경우에만
+		require(game.publisher == msg.sender);
 		
 		game.isPublished = false;
 		
 		emit Unpublish(gameId);
 	}
 	
-	/*// 게임을 구매합니다.
+	// 게임을 구매합니다.
 	function buy(uint gameId) external payable {
 		
 	}
 	
-	// 게임을 평가합니다.
+	/*// 게임을 평가합니다.
 	function rate(uint gameId, uint rating) external {
 		
 	}*/

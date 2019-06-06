@@ -12,7 +12,7 @@ interface DPlayStoreInterface {
 	// 게임 정보
 	struct Game {
 		
-		address owner;
+		address publisher;
 		uint price;
 		bool isPublished;
 		
@@ -67,6 +67,7 @@ interface DPlayStoreInterface {
 	// 게임 정보를 반환합니다.
 	function getGameInfo(uint gameId, string calldata language) external view returns (
 		
+		address publisher,
 		uint price,
 		bool isPublished,
 		
