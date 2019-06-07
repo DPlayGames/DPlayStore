@@ -10,7 +10,7 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 	
 	uint8 constant public RATING_DECIMALS = 18;
 	
-	Game[] public games;
+	Game[] private games;
 	
 	mapping(address => uint[]) private publisherToGameIds;
 	mapping(uint => mapping(string => GameDetails)) private gameIdToLanguageToDetails;
@@ -23,45 +23,75 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 	DPlayCoinInterface private dplayCoin;
 	
 	constructor() NetworkChecker() public {
+		
+		// DPlay Coin 스마트 계약을 불러옵니다.
 		if (network == Network.Mainnet) {
-			//TODO: dplayCoin = DPlayCoinInterface(0x49f1CaA1E50275CdF84eA4896b584f748153Eee2);
+			//TODO
 		} else if (network == Network.Kovan) {
 			dplayCoin = DPlayCoinInterface(0x8079bA69E89237a4B739fF57337109fDAbD8CCa0);
 		} else if (network == Network.Ropsten) {
-			//TODO: dplayCoin = DPlayCoinInterface(0x8d536d404Ee307Dd6FF8599F1Af1ff76AfCde69d);
+			//TODO
 		} else if (network == Network.Rinkeby) {
-			//TODO: dplayCoin = DPlayCoinInterface(0x32A7A93353C2CF233Ad2899A5ca081ac7492e602);
+			//TODO
 		} else {
 			revert();
 		}
 	}
 	
+	// 게임의 개수를 반환합니다.
+	function getGameCount() external view returns (uint) {
+		return games.length;
+	}
+	
 	// 새 게임을 생성합니다.
-	function create(uint price, string calldata defaultLanguage, bool isWebGame, string calldata gameURL) external returns (uint) {
+	function newGame(uint price, string calldata gameURL, bool isWebGame, string calldata defaultLanguage) external returns (uint) {
 		
-		// 게임의 가격 무료이거나 최소 1DC 입니다.
+		// 게임의 가격은 무료이거나 1DC 이상이여야 합니다.
 		require(price == 0 || price >= 10 ** uint(dplayCoin.decimals()));
 		
 		uint createTime = now;
 		
 		uint gameId = games.push(Game({
-			
-			publisher : msg.sender,
-			
-			price : price,
-			defaultLanguage : defaultLanguage,
-			isWebGame : isWebGame,
-			gameURL : gameURL,
-			
-			isPublished : false,
-			
-			createTime : createTime,
-			lastUpdateTime : createTime
+			publisher		: msg.sender,
+			isPublished		: false,
+			price			: price,
+			gameURL			: gameURL,
+			isWebGame		: isWebGame,
+			defaultLanguage	: defaultLanguage,
+			createTime		: createTime,
+			lastUpdateTime	: createTime,
+			publishTime		: 0
 		})).sub(1);
 		
 		publisherToGameIds[msg.sender].push(gameId);
 		
 		return gameId;
+	}
+	
+	// 게임의 정보를 반환합니다.
+	function getGameInfo(uint gameId) external view returns (
+		address publisher,
+		bool isPublished,
+		uint price,
+		string memory gameURL,
+		bool isWebGame,
+		string memory defaultLanguage,
+		uint createTime,
+		uint lastUpdateTime
+	) {
+		
+		Game storage game = games[gameId];
+		
+		return (
+			game.publisher,
+			game.isPublished,
+			game.price,
+			game.gameURL,
+			game.isWebGame,
+			game.defaultLanguage,
+			game.createTime,
+			game.lastUpdateTime
+		);
 	}
 	
 	// 게임의 가격을 변경합니다.
@@ -75,111 +105,70 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 		// 게임의 배포자인 경우에만
 		require(game.publisher == msg.sender);
 		
-		// 게임의 가격은 최소 1DC 입니다.
+		// 게임의 가격은 1DC 이상이여야 합니다.
 		require(price >= 10 ** uint(dplayCoin.decimals()));
 		
 		game.price = price;
+		
+		emit ChangePrice(gameId, price);
 	}
 	
 	// 게임의 정보를 변경합니다.
-	function changeGameInfo(uint gameId, string calldata defaultLanguage, bool isWebGame, string calldata gameURL) external {
+	function changeGameInfo(uint gameId, string calldata gameURL, bool isWebGame, string calldata defaultLanguage) external {
 		
 		Game storage game = games[gameId];
 		
 		// 게임의 배포자인 경우에만
 		require(game.publisher == msg.sender);
 		
-		game.defaultLanguage = defaultLanguage;
-		game.isWebGame = isWebGame;
 		game.gameURL = gameURL;
+		game.isWebGame = isWebGame;
+		game.defaultLanguage = defaultLanguage;
+		
+		emit ChangeGameInfo(gameId, gameURL, isWebGame, defaultLanguage);
 	}
 	
-	// 언어별로 게임 세부 정보를 입력합니다.
-	function setDetails(
+	// 언어별로 게임의 세부 정보를 입력합니다.
+	function setGameDetails(
 		uint gameId,
 		string calldata language,
-		
 		string calldata title,
 		string calldata summary,
-		string calldata downloadURL,
-		
 		string calldata description,
 		string calldata titleImageURL,
-		string calldata bannerImageURL,
-		
-		string calldata keyword1,
-		string calldata keyword2,
-		string calldata keyword3,
-		string calldata keyword4,
-		string calldata keyword5) external {
-		
-		Game storage game = games[gameId];
+		string calldata bannerImageURL) external {
 		
 		// 게임의 배포자인 경우에만
-		require(game.publisher == msg.sender);
+		require(games[gameId].publisher == msg.sender);
 		
 		gameIdToLanguageToDetails[gameId][language] = GameDetails({
-			
 			title : title,
 			summary : summary,
-			downloadURL : downloadURL,
-			
 			description : description,
 			titleImageURL : titleImageURL,
-			bannerImageURL : bannerImageURL,
-			
-			keyword1 : keyword1,
-			keyword2 : keyword2,
-			keyword3 : keyword3,
-			keyword4 : keyword4,
-			keyword5 : keyword5
+			bannerImageURL : bannerImageURL
 		});
 		
-		game.lastUpdateTime = now;
+		games[gameId].lastUpdateTime = now;
 	}
 	
-	// 게임 정보를 반환합니다.
-	function getGameInfo(uint gameId, string calldata language) external view returns (
-		
-		address publisher,
-		uint price,
-		bool isPublished,
-		
+	// 게임의 세부 정보를 반환합니다.
+	function getGameDetails(uint gameId, string calldata language) external view returns (
 		string memory title,
 		string memory summary,
-		string memory downloadURL,
-		
 		string memory description,
 		string memory titleImageURL,
-		string memory bannerImageURL,
-		
-		string memory keyword1,
-		string memory keyword2,
-		string memory keyword3,
-		string memory keyword4,
-		string memory keyword5
+		string memory bannerImageURL
 	) {
-		Game memory game = games[gameId];
+		
 		GameDetails memory gameDetails = gameIdToLanguageToDetails[gameId][language];
 		
 		return (
-			game.publisher,
-			game.price,
-			game.isPublished,
-			
 			gameDetails.title,
 			gameDetails.summary,
-			gameDetails.downloadURL,
-			
 			gameDetails.description,
 			gameDetails.titleImageURL,
-			gameDetails.bannerImageURL,
-			
-			gameDetails.keyword1,
-			gameDetails.keyword2,
-			gameDetails.keyword3,
-			gameDetails.keyword4,
-			gameDetails.keyword5
+			gameDetails.bannerImageURL
 		);
 	}
 	
@@ -192,6 +181,11 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 		require(game.publisher == msg.sender);
 		
 		game.isPublished = true;
+		
+		// 최초 출시인 경우에만 출시 시간 저장
+		if (game.publishTime == 0) {
+			game.publishTime = now;
+		}
 		
 		emit Publish(gameId);
 	}
@@ -232,10 +226,12 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 		
 		// DC를 전송합니다.
 		dplayCoin.transferFrom(msg.sender, game.publisher, game.price);
+		
+		emit Buy(gameId, msg.sender);
 	}
 	
 	// 구매자인지 확인합니다.
-	function checkIsBuyer(uint gameId) public returns (bool) {
+	function checkIsBuyer(uint gameId) public view returns (bool) {
 		
 		uint[] memory gameIds = buyerToGameIds[msg.sender];
 		for (uint i = 0; i < gameIds.length; i += 1) {
@@ -270,10 +266,12 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 			rating : rating,
 			review : review
 		}));
+		
+		emit Rate(gameId, msg.sender, rating, review);
 	}
 	
 	// 평가자인지 확인합니다.
-	function checkIsRater(uint gameId) public returns (bool) {
+	function checkIsRater(uint gameId) public view returns (bool) {
 		
 		Rating[] memory ratings = gameIdToRatings[gameId];
 		for (uint i = 0; i < ratings.length; i += 1) {
@@ -286,10 +284,12 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 	}
 	
 	// 내가 내린 평가 정보를 반환합니다.
-	function getMyRating(uint gameId) external returns (uint rating, string memory review) {
+	function getMyRating(uint gameId) external view returns (uint rating, string memory review) {
 		
 		Rating[] memory ratings = gameIdToRatings[gameId];
 		for (uint i = 0; i < ratings.length; i += 1) {
+			
+			// 내가 내린 평가인 경우
 			if (ratings[i].rater == msg.sender) {
 				return (
 					ratings[i].rating,
@@ -304,9 +304,15 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 		
 		Rating[] storage ratings = gameIdToRatings[gameId];
 		for (uint i = 0; i < ratings.length; i += 1) {
+			
+			// 평가자인 경우에만
 			if (ratings[i].rater == msg.sender) {
+				
 				ratings[i].rating = rating;
 				ratings[i].review = review;
+				
+				emit UpdateRating(gameId, msg.sender, rating, review);
+				return;
 			}
 		}
 	}
@@ -316,16 +322,26 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 		
 		Rating[] storage ratings = gameIdToRatings[gameId];
 		for (uint i = 0; i < ratings.length; i += 1) {
+			
+			// 평가자인 경우에만
 			if (ratings[i].rater == msg.sender) {
+				
 				delete ratings[i];
+				
+				emit RemoveRating(gameId, msg.sender);
 				return;
 			}
 		}
 	}
 	
+	// 게임의 평가 수를 반환합니다.
+	function getRatingCount(uint gameId) external view returns (uint) {
+		return gameIdToRatings[gameId].length;
+	}
+	
 	// 게임의 종합 평가 점수를 반환합니다.
 	// 종합 평가 점수 = (모든 평가의 합: 평가자 A의 DC Power * 평가자 A의 평가 점수) / 모든 평가자의 DC Power
-	function getRating(uint gameId) public view returns (uint) {
+	function getRating(uint gameId) external view returns (uint) {
 		
 		uint totalPower = 0;
 		uint totalRating = 0;
@@ -343,226 +359,4 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 		
 		return totalPower == 0 ? 0 : totalRating.div(totalPower);
 	}
-	
-	/*function checkAreSameString(string memory str1, string memory str2) internal pure returns (bool) {
-		return keccak256(abi.encodePacked(str1)) == keccak256(abi.encodePacked(str2));
-	}
-	
-	function checkKeyword(uint gameId, string memory language, string memory keyword) internal view returns (bool) {
-		
-		Game memory game = games[gameId];
-		
-		GameDetails memory gameDetails = gameIdToLanguageToDetails[gameId][language];
-		GameDetails memory defaultLanguageGameDetails = gameIdToLanguageToDetails[gameId][game.defaultLanguage];
-		
-		return
-			checkAreSameString(gameDetails.keyword1, keyword) == true ||
-			checkAreSameString(gameDetails.keyword2, keyword) == true ||
-			checkAreSameString(gameDetails.keyword3, keyword) == true ||
-			checkAreSameString(gameDetails.keyword4, keyword) == true ||
-			checkAreSameString(gameDetails.keyword5, keyword) == true ||
-			checkAreSameString(defaultLanguageGameDetails.keyword1, keyword) == true ||
-			checkAreSameString(defaultLanguageGameDetails.keyword2, keyword) == true ||
-			checkAreSameString(defaultLanguageGameDetails.keyword3, keyword) == true ||
-			checkAreSameString(defaultLanguageGameDetails.keyword4, keyword) == true ||
-			checkAreSameString(defaultLanguageGameDetails.keyword5, keyword) == true;
-	}
-	
-	// 게임 ID들을 최신 순으로 가져옵니다.
-	function getGameIdsNewest() external view returns (uint[] memory) {
-		
-		uint gameCount = 0;
-		
-		for (uint i = 0; i < games.length; i += 1) {
-			
-			if (
-			// 정상적인 게임 정보인지
-			games[i].publisher != address(0x0) &&
-			
-			// 출시가 되었는지
-			games[i].isPublished == true) {
-				
-				gameCount += 1;
-			}
-		}
-		
-		uint[] memory gameIds = new uint[](gameCount);
-		uint j = 0;
-		
-		for (uint i = games.length - 1; i >= 0; i -= 1) {
-			
-			if (
-			// 정상적인 게임 정보인지
-			games[i].publisher != address(0x0) &&
-			
-			// 출시가 되었는지
-			games[i].isPublished == true) {
-				
-				gameIds[j] = i;
-				j += 1;
-			}
-		}
-		
-		return gameIds;
-	}
-	
-	// 게임 ID들을 높은 점수 순으로 가져오되, 평가 수로 필터링합니다.
-	function getGameIdsByRating(uint ratingCount) external view returns (uint[] memory) {
-		
-		uint gameCount = 0;
-		
-		for (uint i = 0; i < games.length; i += 1) {
-			
-			if (
-			// 정상적인 게임 정보인지
-			games[i].publisher != address(0x0) &&
-			
-			// 출시가 되었는지
-			games[i].isPublished == true &&
-			
-			// 평가 수가 ratingCount 이상인 경우에만
-			gameIdToRatings[i].length >= ratingCount) {
-				
-				gameCount += 1;
-			}
-		}
-		
-		uint[] memory gameIds = new uint[](gameCount);
-		uint gameIdCount = 0;
-		
-		for (uint i = 0; i < games.length; i += 1) {
-			
-			if (
-			// 정상적인 게임 정보인지
-			games[i].publisher != address(0x0) &&
-			
-			// 출시가 되었는지
-			games[i].isPublished == true &&
-			
-			// 평가 수가 ratingCount 이상인 경우에만
-			gameIdToRatings[i].length >= ratingCount) {
-				
-				uint rating = getRating(i);
-				
-				uint j = gameIdCount;
-				for (; j > 0; j -= 1) {
-					if (getRating(gameIds[j]) <= rating) {
-						gameIds[j] = gameIds[j - 1];
-					} else {
-						break;
-					}
-				}
-				
-				gameIds[j] = i;
-				gameIdCount += 1;
-			}
-		}
-		
-		return gameIds;
-	}
-	
-	// 키워드에 해당하는 게임 ID들을 최신 순으로 가져옵니다.
-	function getGameIdsByKeywordNewest(string calldata language, string calldata keyword) external view returns (uint[] memory) {
-		
-		uint gameCount = 0;
-		
-		for (uint i = 0; i < games.length; i += 1) {
-			
-			if (
-			// 정상적인 게임 정보인지
-			games[i].publisher != address(0x0) &&
-			
-			// 출시가 되었는지
-			games[i].isPublished == true &&
-			
-			// 키워드에 해당하는지
-			checkKeyword(i, language, keyword) == true) {
-				
-				gameCount += 1;
-			}
-		}
-		
-		uint[] memory gameIds = new uint[](gameCount);
-		uint j = 0;
-		
-		for (uint i = games.length - 1; i >= 0; i -= 1) {
-			
-			if (
-			// 정상적인 게임 정보인지
-			games[i].publisher != address(0x0) &&
-			
-			// 출시가 되었는지
-			games[i].isPublished == true &&
-			
-			// 키워드에 해당하는지
-			checkKeyword(i, language, keyword) == true) {
-				
-				gameIds[j] = i;
-				j += 1;
-			}
-		}
-		
-		return gameIds;
-	}
-	
-	// 키워드에 해당하는 게임 ID들을 높은 점수 순으로 가져오되, 평가 수로 필터링합니다.
-	function getGameIdsByKeywordAndRating(string calldata language, string calldata keyword, uint ratingCount) external view returns (uint[] memory) {
-		
-		uint gameCount = 0;
-		
-		for (uint i = 0; i < games.length; i += 1) {
-			
-			if (
-			// 정상적인 게임 정보인지
-			games[i].publisher != address(0x0) &&
-			
-			// 출시가 되었는지
-			games[i].isPublished == true &&
-			
-			// 평가 수가 ratingCount 이상인 경우에만
-			gameIdToRatings[i].length >= ratingCount &&
-			
-			// 키워드에 해당하는지
-			checkKeyword(i, language, keyword) == true) {
-				
-				gameCount += 1;
-			}
-		}
-		
-		uint[] memory gameIds = new uint[](gameCount);
-		uint gameIdCount = 0;
-		
-		for (uint i = 0; i < games.length; i += 1) {
-			
-			if (
-			// 정상적인 게임 정보인지
-			games[i].publisher != address(0x0) &&
-			
-			// 출시가 되었는지
-			games[i].isPublished == true &&
-			
-			// 평가 수가 ratingCount 이상인 경우에만
-			gameIdToRatings[i].length >= ratingCount &&
-			
-			// 키워드에 해당하는지
-			checkKeyword(i, language, keyword) == true) {
-				
-				uint rating = getRating(i);
-				
-				uint j = gameIdCount;
-				for (; j > 0; j -= 1) {
-					if (getRating(gameIds[j]) <= rating) {
-						gameIds[j] = gameIds[j - 1];
-					} else {
-						break;
-					}
-				}
-				
-				gameIds[j] = i;
-				gameIdCount += 1;
-			}
-		}
-		
-		return gameIds;
-	}*/
 }

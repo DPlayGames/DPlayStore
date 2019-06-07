@@ -2,103 +2,86 @@ pragma solidity ^0.5.9;
 
 interface DPlayStoreInterface {
 	
-	// 이벤트들
+	// 이벤트
     event ChangePrice(uint indexed gameId, uint price);
+    event ChangeGameInfo(uint indexed gameId, string gameURL, bool isWebGame, string defaultLanguage);
     event Publish(uint indexed gameId);
     event Unpublish(uint indexed gameId);
-    event Buy(uint indexed gameId);
-    event Rate(uint indexed gameId, address rater, uint rating);
-	
-	// 게임 정보
+    event Buy(uint indexed gameId, address indexed buyer);
+    event Rate(uint indexed gameId, address indexed rater, uint rating, string review);
+    event UpdateRating(uint indexed gameId, address indexed rater, uint rating, string review);
+    event RemoveRating(uint indexed gameId, address indexed rater);
+    
+    // 게임 정보
 	struct Game {
-		
-		address publisher;
-		
-		uint price;
-		string defaultLanguage;
-		bool isWebGame;
-		string gameURL;
-		
-		bool isPublished;
-		
-		uint createTime;
-		uint lastUpdateTime;
+		address	publisher;
+		bool	isPublished;
+		uint	price;
+		string	gameURL;
+		bool	isWebGame;
+		string	defaultLanguage;
+		uint	createTime;
+		uint	lastUpdateTime;
+		uint	publishTime;
 	}
 	
 	// 게임 세부 정보 (언어별로 필요합니다.)
 	struct GameDetails {
-		
-		string title;
-		string summary;
-		string downloadURL;
-		
-		string description;
-		string titleImageURL;
-		string bannerImageURL;
-		
-		// 키워드는 최대 5개까지 입력 가능합니다.
-		string keyword1;
-		string keyword2;
-		string keyword3;
-		string keyword4;
-		string keyword5;
+		string	title;
+		string	summary;
+		string	description;
+		string	titleImageURL;
+		string	bannerImageURL;
 	}
 	
 	// 평가 정보
 	struct Rating {
-		address rater;
-		uint rating;
-		string review;
+		address	rater;
+		uint	rating;
+		string	review;
 	}
 	
+	// 게임의 개수를 반환합니다.
+	function getGameCount() external view returns (uint);
+	
 	// 새 게임을 생성합니다.
-	function create(uint price, string calldata defaultLanguage, bool isWebGame, string calldata gameURL) external returns (uint gameId);
+	function newGame(uint price, string calldata gameURL, bool isWebGame, string calldata defaultLanguage) external returns (uint gameId);
+	
+	// 게임의 정보를 반환합니다.
+	function getGameInfo(uint gameId) external view returns (
+		address publisher,
+		bool isPublished,
+		uint price,
+		string memory gameURL,
+		bool isWebGame,
+		string memory defaultLanguage,
+		uint createTime,
+		uint lastUpdateTime
+	);
 	
 	// 게임의 가격을 변경합니다.
 	function changePrice(uint gameId, uint price) external;
 	
 	// 게임의 정보를 변경합니다.
-	function changeGameInfo(uint gameId, string calldata defaultLanguage, bool isWebGame, string calldata gameURL) external;
+	function changeGameInfo(uint gameId, string calldata gameURL, bool isWebGame, string calldata defaultLanguage) external;
 	
-	// 언어별로 게임 세부 정보를 추가합니다.
-	function addDetails(
+	// 언어별로 게임의 세부 정보를 추가합니다.
+	function setGameDetails(
 		uint gameId,
 		string calldata language,
-		
 		string calldata title,
 		string calldata summary,
-		string calldata downloadURL,
-		
 		string calldata description,
 		string calldata titleImageURL,
-		string calldata bannerImageURL,
-		
-		string calldata keyword1,
-		string calldata keyword2,
-		string calldata keyword3,
-		string calldata keyword4,
-		string calldata keyword5) external;
+		string calldata bannerImageURL) external;
 	
-	// 게임 정보를 반환합니다.
-	function getGameInfo(uint gameId, string calldata language) external view returns (
-		
-		address publisher,
-		uint price,
-		bool isPublished,
-		
+	// 게임의 세부 정보를 반환합니다.
+	function getGameDetails(uint gameId, string calldata language) external view returns (
 		string memory title,
 		string memory summary,
-		string memory downloadURL,
-		
 		string memory description,
 		string memory titleImageURL,
-		string memory bannerImageURL,
-		
-		string memory keyword1,
-		string memory keyword2,
-		string memory keyword3,
-		string memory keyword4,
-		string memory keyword5
+		string memory bannerImageURL
 	);
 	
 	// 게임을 출시합니다.
@@ -111,16 +94,16 @@ interface DPlayStoreInterface {
 	function buy(uint gameId) external payable;
 	
 	// 구매자인지 확인합니다.
-	function checkIsBuyer(uint gameId) external returns (bool);
+	function checkIsBuyer(uint gameId) external view returns (bool);
 	
 	// 게임을 평가합니다.
 	function rate(uint gameId, uint rating, string calldata review) external;
 	
 	// 평가자인지 확인합니다.
-	function checkIsRater(uint gameId) external returns (bool);
+	function checkIsRater(uint gameId) external view returns (bool);
 	
 	// 내가 내린 평가 정보를 반환합니다.
-	function getMyRating(uint gameId) external returns (uint rating, string memory review);
+	function getMyRating(uint gameId) external view returns (uint rating, string memory review);
 	
 	// 평가를 수정합니다.
 	function updateRating(uint gameId, uint rating, string calldata review) external;
@@ -128,19 +111,10 @@ interface DPlayStoreInterface {
 	// 평가를 삭제합니다.
 	function removeRating(uint gameId) external;
 	
+	// 게임의 평가 수를 반환합니다.
+	function getRatingCount(uint gameId) external view returns (uint);
+	
 	// 게임의 종합 평가 점수를 반환합니다.
 	// 종합 평가 점수 = (모든 평가의 합: 평가자 A의 DC Power * 평가자 A의 평가 점수) / 모든 평가자의 DC Power
 	function getRating(uint gameId) external view returns (uint);
-	
-	// 게임 ID들을 최신 순으로 가져옵니다.
-	function getGameIdsNewest() external view returns (uint[] memory);
-	
-	// 게임 ID들을 높은 점수 순으로 가져오되, 평가 수로 필터링합니다.
-	function getGameIdsByRating(uint ratingCount) external view returns (uint[] memory);
-	
-	// 키워드에 해당하는 게임 ID들을 최신 순으로 가져옵니다.
-	function getGameIdsByKeywordNewest(string calldata language, string calldata keyword) external view returns (uint[] memory);
-	
-	// 키워드에 해당하는 게임 ID들을 높은 점수 순으로 가져오되, 평가 수로 필터링합니다.
-	function getGameIdsByKeywordAndRating(string calldata language, string calldata keyword, uint ratingCount) external view returns (uint[] memory);
 }
