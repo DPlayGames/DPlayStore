@@ -41,11 +41,16 @@ interface DPlayStoreInterface {
 		string	review;
 	}
 	
+	function ratingDecimals() external view returns (uint8);
+	
 	// 게임의 개수를 반환합니다.
 	function getGameCount() external view returns (uint);
 	
 	// 새 게임을 생성합니다.
 	function newGame(uint price, string calldata gameURL, bool isWebGame, string calldata defaultLanguage) external returns (uint gameId);
+	
+	// 특정 주소가 배포자인지 확인합니다.
+	function checkIsPublisher(address addr, uint gameId) external view returns (bool);
 	
 	// 게임의 정보를 반환합니다.
 	function getGameInfo(uint gameId) external view returns (
@@ -93,17 +98,17 @@ interface DPlayStoreInterface {
 	// 게임을 구매합니다.
 	function buy(uint gameId) external payable;
 	
-	// 구매자인지 확인합니다.
-	function checkIsBuyer(uint gameId) external view returns (bool);
+	// 특정 주소가 구매자인지 확인합니다.
+	function checkIsBuyer(address addr, uint gameId) external view returns (bool);
 	
 	// 게임을 평가합니다.
 	function rate(uint gameId, uint rating, string calldata review) external;
 	
-	// 평가자인지 확인합니다.
-	function checkIsRater(uint gameId) external view returns (bool);
+	// 특정 주소가 평가자인지 확인합니다.
+	function checkIsRater(address addr, uint gameId) external view returns (bool);
 	
-	// 내가 내린 평가 정보를 반환합니다.
-	function getMyRating(uint gameId) external view returns (uint rating, string memory review);
+	// 특정 평가자가 내린 평가 정보를 반환합니다.
+	function getRating(address rater, uint gameId) external view returns (uint rating, string memory review);
 	
 	// 평가를 수정합니다.
 	function updateRating(uint gameId, uint rating, string calldata review) external;
@@ -116,5 +121,5 @@ interface DPlayStoreInterface {
 	
 	// 게임의 종합 평가 점수를 반환합니다.
 	// 종합 평가 점수 = (모든 평가의 합: 평가자 A의 DC Power * 평가자 A의 평가 점수) / 모든 평가자의 DC Power
-	function getRating(uint gameId) external view returns (uint);
+	function getOverallRating(uint gameId) external view returns (uint);
 }

@@ -8,7 +8,7 @@ import "./Util/SafeMath.sol";
 contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 	using SafeMath for uint;
 	
-	uint8 constant public RATING_DECIMALS = 18;
+	uint8 constant private RATING_DECIMALS = 18;
 	
 	Game[] private games;
 	
@@ -36,6 +36,10 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 		} else {
 			revert();
 		}
+	}
+	
+	function ratingDecimals() external view returns (uint8) {
+		return RATING_DECIMALS;
 	}
 	
 	// 게임의 개수를 반환합니다.
@@ -66,6 +70,11 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 		publisherToGameIds[msg.sender].push(gameId);
 		
 		return gameId;
+	}
+	
+	// 특정 주소가 배포자인지 확인합니다.
+	function checkIsPublisher(address addr, uint gameId) external view returns (bool) {
+		return games[gameId].publisher == addr;
 	}
 	
 	// 게임의 정보를 반환합니다.
@@ -215,7 +224,7 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 		require(game.price > 0);
 		
 		// 이미 구매한 경우에는 재구매할 수 없습니다.
-		require(checkIsBuyer(gameId) != true);
+		require(checkIsBuyer(msg.sender, gameId) != true);
 		
 		// 보유 DC량이 게임 가격보다 높아야 합니다.
 		require(dplayCoin.balanceOf(msg.sender) >= game.price);
@@ -230,10 +239,10 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 		emit Buy(gameId, msg.sender);
 	}
 	
-	// 구매자인지 확인합니다.
-	function checkIsBuyer(uint gameId) public view returns (bool) {
+	// 특정 주소가 구매자인지 확인합니다.
+	function checkIsBuyer(address addr, uint gameId) public view returns (bool) {
 		
-		uint[] memory gameIds = buyerToGameIds[msg.sender];
+		uint[] memory gameIds = buyerToGameIds[addr];
 		for (uint i = 0; i < gameIds.length; i += 1) {
 			if (gameIds[i] == gameId) {
 				return true;
@@ -252,10 +261,10 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 		require(game.publisher != address(0x0));
 		
 		// 유료 게임은 구매자만 평가할 수 있습니다.
-		require(game.price == 0 || checkIsBuyer(gameId) == true);
+		require(game.price == 0 || checkIsBuyer(msg.sender, gameId) == true);
 		
 		// 이미 평가한 경우에는 재평가할 수 없습니다.
-		require(checkIsRater(gameId) != true);
+		require(checkIsRater(msg.sender, gameId) != true);
 		
 		// 점수는 10점 이하여야 합니다.
 		require(rating <= 10 * 10 ** uint(RATING_DECIMALS));
@@ -270,12 +279,12 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 		emit Rate(gameId, msg.sender, rating, review);
 	}
 	
-	// 평가자인지 확인합니다.
-	function checkIsRater(uint gameId) public view returns (bool) {
+	// 특정 주소가 평가자인지 확인합니다.
+	function checkIsRater(address addr, uint gameId) public view returns (bool){
 		
 		Rating[] memory ratings = gameIdToRatings[gameId];
 		for (uint i = 0; i < ratings.length; i += 1) {
-			if (ratings[i].rater == msg.sender) {
+			if (ratings[i].rater == addr) {
 				return true;
 			}
 		}
@@ -283,14 +292,14 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 		return false;
 	}
 	
-	// 내가 내린 평가 정보를 반환합니다.
-	function getMyRating(uint gameId) external view returns (uint rating, string memory review) {
+	// 특정 평가자가 내린 평가 정보를 반환합니다.
+	function getRating(address rater, uint gameId) external view returns (uint rating, string memory review) {
 		
 		Rating[] memory ratings = gameIdToRatings[gameId];
 		for (uint i = 0; i < ratings.length; i += 1) {
 			
 			// 내가 내린 평가인 경우
-			if (ratings[i].rater == msg.sender) {
+			if (ratings[i].rater == rater) {
 				return (
 					ratings[i].rating,
 					ratings[i].review
@@ -341,7 +350,7 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 	
 	// 게임의 종합 평가 점수를 반환합니다.
 	// 종합 평가 점수 = (모든 평가의 합: 평가자 A의 DC Power * 평가자 A의 평가 점수) / 모든 평가자의 DC Power
-	function getRating(uint gameId) external view returns (uint) {
+	function getOverallRating(uint gameId) external view returns (uint) {
 		
 		uint totalPower = 0;
 		uint totalRating = 0;
