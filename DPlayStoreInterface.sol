@@ -137,6 +137,7 @@ interface DPlayStoreInterface {
 	// 평가를 삭제합니다.
 	function removeRating(uint gameId) external;
 	
+	// Returns the number of ratings of a game.
 	// 게임의 평가 수를 반환합니다.
 	function getRatingCount(uint gameId) external view returns (uint);
 	
