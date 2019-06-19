@@ -16,5 +16,7 @@ interface DPlayCoinInterface {
 	function approve(address _spender, uint _value) external payable returns (bool success);
 	function allowance(address _owner, address _spender) external view returns (uint remaining);
 	
+	// Returns the DC power.
+	// DC 파워를 반환합니다.
 	function getPower(address user) external view returns (uint power);
 }
