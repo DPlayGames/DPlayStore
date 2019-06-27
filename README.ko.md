@@ -15,8 +15,9 @@ DPlay 게임 판매 스토어
 - ![테스트 여부](https://img.shields.io/badge/테스트%20여부-no-red.svg) `event RemoveRating(uint indexed gameId, address indexed rater)`
 - ![테스트 여부](https://img.shields.io/badge/테스트%20여부-no-red.svg) `function ratingDecimals() external view returns (uint8)`
 - ![테스트 여부](https://img.shields.io/badge/테스트%20여부-no-red.svg) `function getGameCount() external view returns (uint)`
-- ![테스트 여부](https://img.shields.io/badge/테스트%20여부-no-red.svg) `function newGame(uint price, string calldata gameURL, bool isWebGame, string calldata defaultLanguage) external returns (uint gameId)`
+- ![테스트 여부](https://img.shields.io/badge/테스트%20여부-yes-brightgreen.svg) `function newGame(uint price, string calldata gameURL, bool isWebGame, string calldata defaultLanguage) external returns (uint gameId)`
 - ![테스트 여부](https://img.shields.io/badge/테스트%20여부-no-red.svg) `function checkIsPublisher(address addr, uint gameId) external view returns (bool)`
+- ![테스트 여부](https://img.shields.io/badge/테스트%20여부-yes-brightgreen.svg) `function getPublishedGameIds(address publisher) external view returns (uint[] memory)`
 - ![테스트 여부](https://img.shields.io/badge/테스트%20여부-no-red.svg) `function getGameInfo(uint gameId) external view returns (address publisher, bool isReleased, uint price, string memory gameURL,`
 - ![테스트 여부](https://img.shields.io/badge/테스트%20여부-no-red.svg) `bool isWebGame, string memory defaultLanguage, uint createTime, uint lastUpdateTime)`
 - ![테스트 여부](https://img.shields.io/badge/테스트%20여부-no-red.svg) `function changePrice(uint gameId, uint price) external`
@@ -27,6 +28,7 @@ DPlay 게임 판매 스토어
 - ![테스트 여부](https://img.shields.io/badge/테스트%20여부-no-red.svg) `function unrelease(uint gameId) external`
 - ![테스트 여부](https://img.shields.io/badge/테스트%20여부-no-red.svg) `function buy(uint gameId) external payable`
 - ![테스트 여부](https://img.shields.io/badge/테스트%20여부-no-red.svg) `function checkIsBuyer(address addr, uint gameId) external view returns (bool)`
+- ![테스트 여부](https://img.shields.io/badge/테스트%20여부-no-red.svg) `function getBoughtGameIds(address buyer) external view returns (uint[] memory)`
 - ![테스트 여부](https://img.shields.io/badge/테스트%20여부-no-red.svg) `function rate(uint gameId, uint rating, string calldata review) external`
 - ![테스트 여부](https://img.shields.io/badge/테스트%20여부-no-red.svg) `function checkIsRater(address addr, uint gameId) external view returns (bool)`
 - ![테스트 여부](https://img.shields.io/badge/테스트%20여부-no-red.svg) `function getRating(address rater, uint gameId) external view returns (uint rating, string memory review)`
