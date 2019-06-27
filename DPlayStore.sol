@@ -82,6 +82,11 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 		return games[gameId].publisher == addr;
 	}
 	
+	// 특정 배포자가 배포한 게임 ID들을 가져옵니다.
+	function getPublishedGameIds(address publisher) external view returns (uint[] memory) {
+		return publisherToGameIds[publisher];
+	}
+	
 	// Returns the info of the game.
 	// 게임의 정보를 반환합니다.
 	function getGameInfo(uint gameId) external view returns (
@@ -277,6 +282,11 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 		return false;
 	}
 	
+	// 특정 구매자가 구매한 게임 ID들을 가져옵니다.
+	function getBoughtGameIds(address buyer) external view returns (uint[] memory) {
+		return buyerToGameIds[buyer];
+	}
+	
 	// Rates the game.
 	// 게임을 평가합니다.
 	function rate(uint gameId, uint rating, string calldata review) external {
@@ -312,7 +322,7 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 	
 	// Checks if the given address is the rater's address.
 	// 특정 주소가 평가자인지 확인합니다.
-	function checkIsRater(address addr, uint gameId) public view returns (bool){
+	function checkIsRater(address addr, uint gameId) public view returns (bool) {
 		
 		Rating[] memory ratings = gameIdToRatings[gameId];
 		for (uint i = 0; i < ratings.length; i += 1) {
