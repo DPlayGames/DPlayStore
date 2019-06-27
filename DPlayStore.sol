@@ -82,6 +82,7 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 		return games[gameId].publisher == addr;
 	}
 	
+	// Gets the IDs of the game published by the given publisher.
 	// 특정 배포자가 배포한 게임 ID들을 가져옵니다.
 	function getPublishedGameIds(address publisher) external view returns (uint[] memory) {
 		return publisherToGameIds[publisher];
@@ -282,6 +283,7 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 		return false;
 	}
 	
+	// Gets the IDs of the game bought by the given buyer.
 	// 특정 구매자가 구매한 게임 ID들을 가져옵니다.
 	function getBoughtGameIds(address buyer) external view returns (uint[] memory) {
 		return buyerToGameIds[buyer];
