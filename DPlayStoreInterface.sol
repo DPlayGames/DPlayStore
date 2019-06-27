@@ -59,6 +59,7 @@ interface DPlayStoreInterface {
 	// 특정 주소가 배포자인지 확인합니다.
 	function checkIsPublisher(address addr, uint gameId) external view returns (bool);
 	
+	// Gets the IDs of the games published by the given publisher.
 	// 특정 배포자가 배포한 게임 ID들을 가져옵니다.
 	function getPublishedGameIds(address publisher) external view returns (uint[] memory);
 	
@@ -120,6 +121,7 @@ interface DPlayStoreInterface {
 	// 특정 주소가 구매자인지 확인합니다.
 	function checkIsBuyer(address addr, uint gameId) external view returns (bool);
 	
+	// Gets the IDs of the games bought by the given buyer.
 	// 특정 구매자가 구매한 게임 ID들을 가져옵니다.
 	function getBoughtGameIds(address buyer) external view returns (uint[] memory);
 	
