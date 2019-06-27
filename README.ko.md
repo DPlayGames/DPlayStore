@@ -18,13 +18,13 @@ DPlay 게임 판매 스토어
 - ![테스트 여부](https://img.shields.io/badge/테스트%20여부-yes-brightgreen.svg) `function newGame(uint price, string calldata gameURL, bool isWebGame, string calldata defaultLanguage) external returns (uint gameId)`
 - ![테스트 여부](https://img.shields.io/badge/테스트%20여부-no-red.svg) `function checkIsPublisher(address addr, uint gameId) external view returns (bool)`
 - ![테스트 여부](https://img.shields.io/badge/테스트%20여부-yes-brightgreen.svg) `function getPublishedGameIds(address publisher) external view returns (uint[] memory)`
-- ![테스트 여부](https://img.shields.io/badge/테스트%20여부-no-red.svg) `function getGameInfo(uint gameId) external view returns (address publisher, bool isReleased, uint price, string memory gameURL,`
+- ![테스트 여부](https://img.shields.io/badge/테스트%20여부-yes-brightgreen.svg) `function getGameInfo(uint gameId) external view returns (address publisher, bool isReleased, uint price, string memory gameURL,`
 - ![테스트 여부](https://img.shields.io/badge/테스트%20여부-no-red.svg) `bool isWebGame, string memory defaultLanguage, uint createTime, uint lastUpdateTime)`
 - ![테스트 여부](https://img.shields.io/badge/테스트%20여부-no-red.svg) `function changePrice(uint gameId, uint price) external`
 - ![테스트 여부](https://img.shields.io/badge/테스트%20여부-no-red.svg) `function changeGameInfo(uint gameId, string calldata gameURL, bool isWebGame, string calldata defaultLanguage) external`
-- ![테스트 여부](https://img.shields.io/badge/테스트%20여부-no-red.svg) `function setGameDetails(uint gameId, string calldata language, string calldata title, string calldata summary, string calldata description, string calldata titleImageURL, string calldata bannerImageURL) external`
-- ![테스트 여부](https://img.shields.io/badge/테스트%20여부-no-red.svg) `function getGameDetails(uint gameId, string calldata language) external view returns (string memory title, string memory summary, string memory description, string memory titleImageURL, string memory bannerImageURL)`
-- ![테스트 여부](https://img.shields.io/badge/테스트%20여부-no-red.svg) `function release(uint gameId) external`
+- ![테스트 여부](https://img.shields.io/badge/테스트%20여부-yes-brightgreen.svg) `function setGameDetails(uint gameId, string calldata language, string calldata title, string calldata summary, string calldata description, string calldata titleImageURL, string calldata bannerImageURL) external`
+- ![테스트 여부](https://img.shields.io/badge/테스트%20여부-yes-brightgreen.svg) `function getGameDetails(uint gameId, string calldata language) external view returns (string memory title, string memory summary, string memory description, string memory titleImageURL, string memory bannerImageURL)`
+- ![테스트 여부](https://img.shields.io/badge/테스트%20여부-yes-brightgreen.svg) `function release(uint gameId) external`
 - ![테스트 여부](https://img.shields.io/badge/테스트%20여부-no-red.svg) `function unrelease(uint gameId) external`
 - ![테스트 여부](https://img.shields.io/badge/테스트%20여부-no-red.svg) `function buy(uint gameId) external payable`
 - ![테스트 여부](https://img.shields.io/badge/테스트%20여부-no-red.svg) `function checkIsBuyer(address addr, uint gameId) external view returns (bool)`
