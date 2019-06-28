@@ -98,7 +98,8 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 		bool isWebGame,
 		string memory defaultLanguage,
 		uint createTime,
-		uint lastUpdateTime
+		uint lastUpdateTime,
+		uint releaseTime
 	) {
 		
 		Game storage game = games[gameId];
@@ -111,7 +112,8 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 			game.isWebGame,
 			game.defaultLanguage,
 			game.createTime,
-			game.lastUpdateTime
+			game.lastUpdateTime,
+			game.releaseTime
 		);
 	}
 	

@@ -2,7 +2,7 @@
 DPlay 게임 판매 스토어
 
 ## 계약 주소
-- Kovan: 0x0191f2EFAcA986Ec5dc136987E0dAC05Bc804A0C
+- Kovan: 0xaa13eD0564DF5019E2DD5E09f03b5Abd31bC832D
 
 ## 테스트 여부
 - ![테스트 여부](https://img.shields.io/badge/테스트%20여부-no-red.svg) `event ChangePrice(uint indexed gameId, uint price)`
@@ -18,8 +18,7 @@ DPlay 게임 판매 스토어
 - ![테스트 여부](https://img.shields.io/badge/테스트%20여부-yes-brightgreen.svg) `function newGame(uint price, string calldata gameURL, bool isWebGame, string calldata defaultLanguage) external returns (uint gameId)`
 - ![테스트 여부](https://img.shields.io/badge/테스트%20여부-no-red.svg) `function checkIsPublisher(address addr, uint gameId) external view returns (bool)`
 - ![테스트 여부](https://img.shields.io/badge/테스트%20여부-yes-brightgreen.svg) `function getPublishedGameIds(address publisher) external view returns (uint[] memory)`
-- ![테스트 여부](https://img.shields.io/badge/테스트%20여부-yes-brightgreen.svg) `function getGameInfo(uint gameId) external view returns (address publisher, bool isReleased, uint price, string memory gameURL,`
-- ![테스트 여부](https://img.shields.io/badge/테스트%20여부-no-red.svg) `bool isWebGame, string memory defaultLanguage, uint createTime, uint lastUpdateTime)`
+- ![테스트 여부](https://img.shields.io/badge/테스트%20여부-yes-brightgreen.svg) `function getGameInfo(uint gameId) external view returns (address publisher, bool isReleased, uint price, string memory gameURL, bool isWebGame, string memory defaultLanguage, uint createTime, uint lastUpdateTime, uint releaseTime)`
 - ![테스트 여부](https://img.shields.io/badge/테스트%20여부-no-red.svg) `function changePrice(uint gameId, uint price) external`
 - ![테스트 여부](https://img.shields.io/badge/테스트%20여부-no-red.svg) `function changeGameInfo(uint gameId, string calldata gameURL, bool isWebGame, string calldata defaultLanguage) external`
 - ![테스트 여부](https://img.shields.io/badge/테스트%20여부-yes-brightgreen.svg) `function setGameDetails(uint gameId, string calldata language, string calldata title, string calldata summary, string calldata description, string calldata titleImageURL, string calldata bannerImageURL) external`

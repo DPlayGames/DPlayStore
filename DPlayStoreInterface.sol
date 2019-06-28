@@ -73,7 +73,8 @@ interface DPlayStoreInterface {
 		bool isWebGame,
 		string memory defaultLanguage,
 		uint createTime,
-		uint lastUpdateTime
+		uint lastUpdateTime,
+		uint releaseTime
 	);
 	
 	// Changes the price of a game.
