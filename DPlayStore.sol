@@ -18,6 +18,7 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 	mapping(address => uint[]) private buyerToGameIds;
 	mapping(uint => address[]) private gameIdToBuyers;
 	
+	mapping(address => uint[]) private raterToGameIds;
 	mapping(uint => Rating[]) private gameIdToRatings;
 	
 	DPlayCoinInterface private dplayCoin;
@@ -313,6 +314,9 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 		// 점수는 10점 이하여야 합니다.
 		require(rating <= 10 * 10 ** uint(RATING_DECIMALS));
 		
+		// 평가자로 등록합니다.
+		raterToGameIds[msg.sender].push(gameId);
+		
 		// Registers the rating.
 		// 평가를 등록합니다.
 		gameIdToRatings[gameId].push(Rating({
@@ -328,9 +332,9 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 	// 특정 주소가 평가자인지 확인합니다.
 	function checkIsRater(address addr, uint gameId) public view returns (bool) {
 		
-		Rating[] memory ratings = gameIdToRatings[gameId];
-		for (uint i = 0; i < ratings.length; i += 1) {
-			if (ratings[i].rater == addr) {
+		uint[] memory gameIds = raterToGameIds[addr];
+		for (uint i = 0; i < gameIds.length; i += 1) {
+			if (gameIds[i] == gameId) {
 				return true;
 			}
 		}
@@ -356,6 +360,11 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 		}
 	}
 	
+	// 특정 평가자가 평가한 게임 ID들을 가져옵니다.
+	function getRatedGameIds(address rater) external view returns (uint[] memory) {
+		return raterToGameIds[rater];
+	}
+	
 	// Updates a rating.
 	// 평가를 수정합니다.
 	function updateRating(uint gameId, uint rating, string calldata review) external {
@@ -371,25 +380,6 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 				ratings[i].review = review;
 				
 				emit UpdateRating(gameId, msg.sender, rating, review);
-				return;
-			}
-		}
-	}
-	
-	// Removes a rating.
-	// 평가를 삭제합니다.
-	function removeRating(uint gameId) external {
-		
-		Rating[] storage ratings = gameIdToRatings[gameId];
-		for (uint i = 0; i < ratings.length; i += 1) {
-			
-			// The sender must be the rater.
-			// 평가자인 경우에만
-			if (ratings[i].rater == msg.sender) {
-				
-				delete ratings[i];
-				
-				emit RemoveRating(gameId, msg.sender);
 				return;
 			}
 		}

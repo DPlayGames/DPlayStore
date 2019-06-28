@@ -134,6 +134,9 @@ interface DPlayStoreInterface {
 	// 특정 주소가 평가자인지 확인합니다.
 	function checkIsRater(address addr, uint gameId) external view returns (bool);
 	
+	// 특정 평가자가 평가한 게임 ID들을 가져옵니다.
+	function getRatedGameIds(address rater) external view returns (uint[] memory);
+	
 	// Returns the rating info of the given rater.
 	// 특정 평가자가 내린 평가 정보를 반환합니다.
 	function getRating(address rater, uint gameId) external view returns (uint rating, string memory review);
@@ -141,10 +144,6 @@ interface DPlayStoreInterface {
 	// Updates a rating.
 	// 평가를 수정합니다.
 	function updateRating(uint gameId, uint rating, string calldata review) external;
-	
-	// Removes a rating.
-	// 평가를 삭제합니다.
-	function removeRating(uint gameId) external;
 	
 	// Returns the number of ratings of a game.
 	// 게임의 평가 수를 반환합니다.
