@@ -134,6 +134,7 @@ interface DPlayStoreInterface {
 	// 특정 주소가 평가자인지 확인합니다.
 	function checkIsRater(address addr, uint gameId) external view returns (bool);
 	
+	// Gets the game IDs rated by the given rater.
 	// 특정 평가자가 평가한 게임 ID들을 가져옵니다.
 	function getRatedGameIds(address rater) external view returns (uint[] memory);
 	
