@@ -360,6 +360,7 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 		}
 	}
 	
+	// Gets the game IDs rated by the given rater.
 	// 특정 평가자가 평가한 게임 ID들을 가져옵니다.
 	function getRatedGameIds(address rater) external view returns (uint[] memory) {
 		return raterToGameIds[rater];
