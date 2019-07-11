@@ -154,12 +154,15 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 		
 		Game storage game = games[gameId];
 		
+		// The prices of free games cannot be changed.
 		// 무료 게임은 가격을 변경할 수 없습니다.
 		require(game.price > 0);
 		
+		// Only the publisher of the game can change its price.
 		// 게임의 배포자인 경우에만
 		require(game.publisher == msg.sender);
 		
+		// The price must be at least 1DC.
 		// 게임의 가격은 1DC 이상이여야 합니다.
 		require(price >= 10 ** uint(dplayCoin.decimals()));
 		
@@ -344,6 +347,7 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 		// 점수는 10점 이하여야 합니다.
 		require(rating <= 10 * 10 ** uint(RATING_DECIMALS));
 		
+		// Registers the message sender as a rater.
 		// 평가자로 등록합니다.
 		raterToGameIds[msg.sender].push(gameId);
 		
