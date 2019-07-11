@@ -63,6 +63,7 @@ interface DPlayStoreInterface {
 	// 특정 배포자가 배포한 게임 ID들을 가져옵니다.
 	function getPublishedGameIds(address publisher) external view returns (uint[] memory);
 	
+	// Transfers the game.
 	// 게임을 이전합니다.
 	function transferGame(address to, uint gameId) external;
 	
