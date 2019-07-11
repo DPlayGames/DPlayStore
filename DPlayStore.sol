@@ -89,6 +89,32 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 		return publisherToGameIds[publisher];
 	}
 	
+	// 게임을 이전합니다.
+	function transferGame(address to, uint gameId) external {
+		
+		Game storage game = games[gameId];
+		
+		// 게임의 배포자인 경우에만
+		require(game.publisher == msg.sender);
+		
+		// 기존 배포자의 게임 ID 목록에서 게임 ID를 제거합니다.
+		for (uint i = 0; i < publisherToGameIds[msg.sender].length - 1; i += 1) {
+			if (publisherToGameIds[msg.sender][i] == gameId) {
+				
+				for (; i < publisherToGameIds[msg.sender].length - 1; i += 1) {
+					publisherToGameIds[msg.sender][i] = publisherToGameIds[msg.sender][i + 1];
+				}
+				
+				break;
+			}
+		}
+		publisherToGameIds[msg.sender].length -= 1;
+		
+		// 새 배포자를 등록합니다.
+		game.publisher = to;
+		publisherToGameIds[to].push(gameId);
+	}
+	
 	// Returns the info of the game.
 	// 게임의 정보를 반환합니다.
 	function getGameInfo(uint gameId) external view returns (
@@ -103,7 +129,7 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 		uint releaseTime
 	) {
 		
-		Game storage game = games[gameId];
+		Game memory game = games[gameId];
 		
 		return (
 			game.publisher,
