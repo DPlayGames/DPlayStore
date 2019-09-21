@@ -107,7 +107,7 @@ interface DPlayStoreInterface {
 	
 	// Buys a game.
 	// 게임을 구매합니다.
-	function buy(uint gameId) external payable;
+	function buy(uint gameId) external;
 	
 	// Checks if the given address is the buyer's address.
 	// 특정 주소가 구매자인지 확인합니다.

@@ -264,7 +264,7 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 	
 	// Buys the game.
 	// 게임을 구매합니다.
-	function buy(uint gameId) external payable {
+	function buy(uint gameId) external {
 		
 		Game memory game = games[gameId];
 		
