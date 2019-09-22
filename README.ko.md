@@ -2,7 +2,7 @@
 DPlay 게임 판매 스토어
 
 ## 계약 주소
-- Kovan: 0xaa13eD0564DF5019E2DD5E09f03b5Abd31bC832D
+- Kovan: 0x62596CC4b56d3AA5F0F9306642Ff062Ca34845b0
 
 ## 테스트 여부
 - ![테스트 여부](https://img.shields.io/badge/테스트%20여부-no-red.svg) `event ChangePrice(uint indexed gameId, uint price)`
