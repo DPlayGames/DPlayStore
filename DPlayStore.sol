@@ -25,7 +25,7 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 		if (network == Network.Mainnet) {
 			//TODO
 		} else if (network == Network.Kovan) {
-			dplayCoin = DPlayCoinInterface(0xD49bc1247d25FBDF2bB25F5A3333b15198FbA544);
+			dplayCoin = DPlayCoinInterface(0xfFF1528013478fc286ABBBE8071D5404b082Be5D);
 		} else if (network == Network.Ropsten) {
 			//TODO
 		} else if (network == Network.Rinkeby) {
