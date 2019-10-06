@@ -82,7 +82,7 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 	
 	// Transfers the game.
 	// 게임을 이전합니다.
-	function transferGame(address to, uint gameId) external {
+	function transfer(address to, uint gameId) external {
 		
 		Game storage game = games[gameId];
 		
@@ -108,6 +108,8 @@ contract DPlayStore is DPlayStoreInterface, NetworkChecker {
 		// 새 배포자를 등록합니다.
 		game.publisher = to;
 		publisherToGameIds[to].push(gameId);
+		
+		emit Transfer(msg.sender, to, gameId);
 	}
 	
 	// Returns the info of the game.

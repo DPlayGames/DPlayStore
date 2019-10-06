@@ -4,6 +4,7 @@ interface DPlayStoreInterface {
 	
 	// Events
 	// 이벤트
+    event Transfer(address indexed from, address indexed to, uint indexed gameId);
     event ChangePrice(uint indexed gameId, uint price);
     event ChangeGameInfo(uint indexed gameId, string gameURL, bool isWebGame, string defaultLanguage);
     event Release(uint indexed gameId);
@@ -52,7 +53,7 @@ interface DPlayStoreInterface {
 	
 	// Transfers the game.
 	// 게임을 이전합니다.
-	function transferGame(address to, uint gameId) external;
+	function transfer(address to, uint gameId) external;
 	
 	// Returns the info of a game.
 	// 게임의 정보를 반환합니다.
