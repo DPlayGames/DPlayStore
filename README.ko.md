@@ -8,7 +8,7 @@ DPlay 게임 판매 스토어
 - Rinkeby: 0x01DA6dAdCE4662ecB32A544D8dD6f2796Ae986a6
 
 ## 테스트 여부
-- ![테스트 여부](https://img.shields.io/badge/테스트%20여부-no-red.svg) `event Transfer(address indexed from, address indexed to, uint indexed gameId)`
+- ![테스트 여부](https://img.shields.io/badge/테스트%20여부-yes-brightgreen.svg) `event Transfer(address indexed from, address indexed to, uint indexed gameId)`
 - ![테스트 여부](https://img.shields.io/badge/테스트%20여부-yes-brightgreen.svg) `event ChangePrice(uint indexed gameId, uint price)`
 - ![테스트 여부](https://img.shields.io/badge/테스트%20여부-yes-brightgreen.svg) `event ChangeGameInfo(uint indexed gameId, string gameURL, bool isWebGame, string defaultLanguage)`
 - ![테스트 여부](https://img.shields.io/badge/테스트%20여부-yes-brightgreen.svg) `event Release(uint indexed gameId)`
